@@ -1,0 +1,3 @@
+# A discord project for everyone who need a easy-to-use discord bot.
+
+# Under development...
