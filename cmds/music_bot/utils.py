@@ -18,6 +18,7 @@ from core.utils import create_basic_embed, get_member
 from core.translator import load_translated, get_translate
 from core import scrapetube
 from core.priority_queue import MyPriorityQueue
+from core.emojis import get_emoji
 
 if TYPE_CHECKING:
     from .player import Player
@@ -188,7 +189,7 @@ async def send_info_embed(player: Player, ctx: commands.Context | discord.Intera
     i18n_info_data = load_translated(i18n_info_str)[0]
     ''''''
 
-    eb = create_basic_embed(f'{i18n_info_data['title'] if is_current else '已新增 '}`{title}`', color=user.color, 功能='音樂播放')
+    eb = create_basic_embed(f'{get_emoji('playing')}{i18n_info_data['title'] if is_current else '已新增 '}`{title}`', color=user.color, 功能='音樂播放')
     eb.set_image(url=thumbnail_url)
 
     field_names = i18n_info_data['field']
@@ -200,8 +201,11 @@ async def send_info_embed(player: Player, ctx: commands.Context | discord.Intera
         player.progress_bar
     ]
 
+    emojis = ['url', 'play', 'loop', 'volume', 'progress_bar']
+
     for i, field in enumerate(field_names):
-        eb.add_field(name=field['name'], value=field_values[i], inline=field.get('inline', True))
+        emoji = get_emoji(emojis[i])
+        eb.add_field(name=f'{emoji}{field['name']}', value=field_values[i], inline=field.get('inline', True))
 
     footer_text = i18n_info_data['footer'].format(user_name=user.global_name)
     eb.set_footer(text=footer_text, icon_url=user.avatar.url if user.avatar else None)

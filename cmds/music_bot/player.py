@@ -12,6 +12,7 @@ from .downloader import Downloader
 
 from core.utils import create_basic_embed, current_time, secondToReadable, math_round, redis_client
 from core.translator import load_translated, get_translate
+from core.emojis import get_emoji
 
 loop_option = ('None', 'single', 'list')
 loop_type = Literal['None', 'single', 'list']
@@ -322,6 +323,11 @@ class Player:
         start = max(0, index - 2)
         end = min(len(self.list), index + 8)
 
+        '''emoji'''
+        np_emoji = get_emoji('playing')
+        next_emoji = get_emoji('next2')
+        ''''''
+
         for i in range(start, end):
             item = self.list[i]
             title = item['title']
@@ -331,12 +337,12 @@ class Player:
             
             prefix = ''
             if i == index:
-                prefix = f'{i18n_queue_data["field"][0]["name"]} '
+                prefix = f'{np_emoji}{i18n_queue_data["field"][0]["name"]}:'
             elif i == index + 1:
-                prefix = f'{i18n_queue_data["field"][1]["name"]} '
+                prefix = f'{next_emoji}{i18n_queue_data["field"][1]["name"]}:'
 
             eb.add_field(
-                name=f'{prefix}{i + 1}. {title}',
+                name=f'{prefix} {i + 1}. `{title}`',
                 value=f'[URL]({video_url})\n{i18n_np_data["duration"]}: {duration}\n{i18n_np_data["requester"]}: {user.global_name if user else "N/A"}',
                 inline=False
             )

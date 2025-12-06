@@ -83,13 +83,13 @@
             "now_playing": "Now Playing"
         }],
         "embed_music_info": [{
-            "title": "♪ Now Playing",
+            "title": "Now Playing",
             "field": [
-                { "name": "🌐 Video URL" },
-                { "name": "🎶 Song Duration" },
-                { "name": "🔁 Loop Status" },
-                { "name": "🔊 Volume" },
-                { "name": "📊 Progress Bar", "inline": false }
+                { "name": "Video URL" },
+                { "name": "Song Duration" },
+                { "name": "Loop Status" },
+                { "name": "Volume" },
+                { "name": "Progress Bar", "inline": false }
             ],
             "footer": "Requester: {user_name}"
         }],

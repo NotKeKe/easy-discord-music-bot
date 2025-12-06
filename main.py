@@ -8,6 +8,7 @@ from pathlib import Path
 from core.config import ENV_PATH
 from core.utils import set_bot
 from core.translator import i18n
+from core.emojis import create_emojis
 
 logger = logging.getLogger(__name__)
 
@@ -40,6 +41,7 @@ async def on_ready():
         logger.warning('Bot is not logged in.')
         return
     logger.info(f'Logged in as {bot.user.name} (ID: {bot.user.id})')
+    await create_emojis(bot)
 
 @bot.event
 async def on_connect(): ...

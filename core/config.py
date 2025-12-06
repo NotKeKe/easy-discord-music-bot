@@ -2,6 +2,7 @@ from pathlib import Path
 import sys
 from dotenv import load_dotenv
 import shutil
+import os
 
 MY_APP_NAME = "Easy Music Bot"
 
@@ -34,3 +35,9 @@ DATA_PATH.mkdir(exist_ok=True)
 
 DB_PATH = DATA_PATH / "db"
 DB_PATH.mkdir(exist_ok=True)
+
+EMOJI_PATH = DATA_PATH / "emojis"
+EMOJI_PATH.mkdir(exist_ok=True)
+
+_owner_id = os.getenv("OWNER_ID", 0)
+OWNER_ID = int(_owner_id if _owner_id and _owner_id != 'OWNER_ID' else 0)
