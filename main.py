@@ -5,55 +5,58 @@ import os
 import logging
 from pathlib import Path
 
-from core.config import ENV_PATH
+from core.config import ENV_PATH, resource_path
 from core.utils import set_bot
 from core.translator import i18n
 from core.emojis import create_emojis
 
 logger = logging.getLogger(__name__)
-logger.info('Starting bot...')
 
-intents = discord.Intents.default()
-intents.message_content = True
-intents.guilds = True
-intents.members = True
-intents.presences = True
-intents.voice_states = True
+async def setup_bot():
+    global bot
+    logger.info('Starting bot...')
 
-bot = commands.Bot('$', intents=intents)
-set_bot(bot) # 用於之後 import bot
+    intents = discord.Intents.default()
+    intents.message_content = True
+    intents.guilds = True
+    intents.members = True
+    intents.presences = True
+    intents.voice_states = True
 
-bot.help_command = None
+    bot = commands.Bot('$', intents=intents)
+    set_bot(bot) # 用於之後 import bot
 
-# 設定 events
-@bot.event
-async def setup_hook():
-    try:
-        translator = i18n()
-        await bot.tree.set_translator(translator)
-        synced_bot = await bot.tree.sync()
-        logger.info(f'Synced {len(synced_bot)} commands.')
-    except:
-        logger.error('Error while syncing commands.', exc_info=True)
+    bot.help_command = None
 
-@bot.event
-async def on_ready():
-    if not bot.user:
-        logger.warning('Bot is not logged in.')
-        return
-    logger.info(f'Logged in as {bot.user.name} (ID: {bot.user.id})')
-    await create_emojis(bot)
+    # 設定 events
+    @bot.event
+    async def setup_hook():
+        try:
+            translator = i18n()
+            await bot.tree.set_translator(translator)
+            synced_bot = await bot.tree.sync()
+            logger.info(f'Synced {len(synced_bot)} commands.')
+        except:
+            logger.error('Error while syncing commands.', exc_info=True)
 
-@bot.event
-async def on_connect(): ...
+    @bot.event
+    async def on_ready():
+        if not bot.user:
+            logger.warning('Bot is not logged in.')
+            return
+        logger.info(f'Logged in as {bot.user.name} (ID: {bot.user.id})')
+        await create_emojis(bot)
 
-@bot.event
-async def on_disconnect(): ...
+    @bot.event
+    async def on_connect(): ...
+
+    @bot.event
+    async def on_disconnect(): ...
 
 
 # load commands
 async def load():
-    for filename in Path('./cmds').iterdir():
+    for filename in Path(resource_path('cmds')).iterdir():
         try:
             if filename.suffix == '.py':
                 logger.info('Loading command: ' + filename.stem)
@@ -64,6 +67,7 @@ async def load():
             logger.error('Error while loading command: ' + filename.stem, exc_info=True)
 
 async def main():
+    await setup_bot()
     async with bot:
         await load()
         bot_token = os.getenv('DISCORD_TOKEN')
@@ -72,7 +76,9 @@ async def main():
         await bot.start(bot_token)
 
 if __name__ == '__main__':
+    import multiprocessing
     try:
+        multiprocessing.freeze_support()
         asyncio.run(main())
     except KeyboardInterrupt:
         logger.info('Bot is shutting down.')

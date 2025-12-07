@@ -16,8 +16,21 @@ from cmds.music_bot.utils import send_info_embed, check_and_get_player, players,
 
 from core.translator import locale_str, get_translate, load_translated
 from core.utils import create_basic_embed
+from core.config import resource_path
 
 logger = logging.getLogger(__name__)
+
+# load opus
+if not discord.opus.is_loaded():
+    import platform
+    if platform.architecture()[0] == '64bit':
+        discord.opus.load_opus(resource_path('assets/opus/opus_x64.dll'))
+    elif platform.architecture()[0] == '32bit':
+        discord.opus.load_opus(resource_path('assets/opus/opus_x86.dll'))
+
+# if still not load opus
+if not discord.opus.is_loaded():
+    raise Exception('Failed to load opus')
 
 class Music(commands.Cog):
     def __init__(self, bot: commands.Bot):

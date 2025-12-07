@@ -106,7 +106,7 @@ async def check_audio_url_alive(audio_url: str) -> bool:
 
 def query_search(query: str) -> Optional[tuple]:
     '''return (title, video_url, length: str)'''
-    search = Search(query, 'WEB')
+    search = Search(query)
     videos = search.videos
     if videos:
         video = videos[0]
@@ -152,8 +152,7 @@ async def send(ctx: commands.Context | discord.Interaction, text: Optional[str] 
             await view.wait()
             await msg.edit(view=None)
         
-        assert isinstance(msg, discord.Message)
-        asyncio.create_task(wait_view(view, msg))
+        asyncio.create_task(wait_view(view, msg)) # type: ignore
 
 async def send_info_embed(player: Player, ctx: commands.Context | discord.Interaction, index: Optional[int] = None, if_send: bool = True) -> tuple[discord.Embed, discord.ui.View] | None: # type: ignore
     '''Ensure index is index not id of song'''

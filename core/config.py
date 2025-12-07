@@ -21,13 +21,18 @@ def get_app_data_path() -> Path:
     path.mkdir(parents=True, exist_ok=True)
     return path
 
+def resource_path(relative_path):
+    """取得打包後的資源路徑"""
+    if hasattr(sys, "_MEIPASS"):
+        return os.path.join(sys._MEIPASS, relative_path) # type: ignore
+    return os.path.join(os.path.abspath("."), relative_path)
 
 APP_DATA_PATH = get_app_data_path()
 
 # get env
 ENV_PATH = APP_DATA_PATH / ".env"
 if not ENV_PATH.exists():
-    shutil.copy(Path(__file__).parent.parent / ".env.example", ENV_PATH)
+    shutil.copy(resource_path(".env.example"), ENV_PATH)
 load_dotenv(APP_DATA_PATH / ".env")
 
 DATA_PATH = APP_DATA_PATH / "data"
@@ -41,3 +46,5 @@ EMOJI_PATH.mkdir(exist_ok=True)
 
 _owner_id = os.getenv("OWNER_ID", 0)
 OWNER_ID = int(_owner_id if _owner_id and _owner_id != 'OWNER_ID' else 0)
+
+FFMPEG_PATH = os.getenv('FFMPEG_PATH') or resource_path("assets/ffmpeg/ffmpeg.exe")

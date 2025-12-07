@@ -8,7 +8,8 @@ import orjson
 import aiofiles
 import logging
 
-from.utils import get_bot
+from .utils import get_bot
+from .config import resource_path
 
 DEFAULT_LANG = 'zh-TW'
 logger = logging.getLogger(__name__)
@@ -84,7 +85,7 @@ class i18n(Translator):
         langs = [lang] if lang else ('en-US', 'zh-TW', 'zh-CN')
         for l in langs:
             try:
-                async with aiofiles.open(f'./core/locales/{l}.json', 'rb') as f:
+                async with aiofiles.open(resource_path(f'core/locales/{l}.json'), 'rb') as f:
                     self.translations[l] = orjson.loads(await f.read())
                     print(f'Successfully loaded {l} (translator)')
             except:
