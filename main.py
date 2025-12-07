@@ -11,6 +11,7 @@ from core.translator import i18n
 from core.emojis import create_emojis
 
 logger = logging.getLogger(__name__)
+logger.info('Starting bot...')
 
 intents = discord.Intents.default()
 intents.message_content = True

@@ -127,6 +127,14 @@
         "send_delete_custom_list_success": "Successfully deleted custom playlist `({list_name})`.",
         "send_delete_custom_list_cancelled": "Deletion of custom playlist `({list_name})` has been cancelled.",
         "send_play_custom_list_already_playing_left_first": "You must leave first before you can play your custom playlist.",
-        "send_play_not_in_guild": "You must be in a guild to play music."
+        "send_play_not_in_guild": "You must be in a guild to play music.",
+        "button_previous": "Previous",
+        "button_pause": "Pause",
+        "button_resume": "Resume",
+        "button_stop": "Stop",
+        "button_loop": "Loop",
+        "button_list": "Playlist",
+        "button_refresh": "Refresh",
+        "button_volume": "Volume"
     }
 }

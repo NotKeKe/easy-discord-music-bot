@@ -22,6 +22,8 @@ class Help(commands.Cog):
     @commands.hybrid_command(name=locale_str('emoji'), description=locale_str('emoji'))
     async def emoji(self, ctx: commands.Context, name: str):
         emoji = get_emoji(name)
+        if not emoji:
+            return await ctx.send('Emoji not found!')
         await ctx.send(f'{emoji}\nID: {emoji.id}\nName: {emoji.name}')
 
     @commands.hybrid_command(name=locale_str('reload_emojis'), description=locale_str('reload_emojis'))

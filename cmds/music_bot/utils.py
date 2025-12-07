@@ -210,7 +210,7 @@ async def send_info_embed(player: Player, ctx: commands.Context | discord.Intera
     footer_text = i18n_info_data['footer'].format(user_name=user.global_name)
     eb.set_footer(text=footer_text, icon_url=user.avatar.url if user.avatar else None)
 
-    view = MusicControlButtons(player)
+    view = MusicControlButtons(player, ctx)
     if if_send:
         await send(ctx, embed=eb, view=view)
     return eb, view

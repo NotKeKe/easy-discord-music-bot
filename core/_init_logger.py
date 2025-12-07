@@ -45,8 +45,6 @@ def _setup_logging():
     if not root_logger.handlers:
         root_logger.addHandler(console_handler)
         root_logger.addHandler(file_handler)
-      
-    logging.info("Starting bot...")
 
 class StreamToLogger:
     def __init__(self, logger, level):

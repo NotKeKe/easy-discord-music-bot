@@ -1,7 +1,8 @@
 from discord import Interaction, SelectOption, Message, errors, File
 from discord.ui import View, button, select, Button
+from discord.ext import commands
 import traceback
-import io
+import asyncio
 from typing import Optional
 
 from .player import Player
@@ -14,85 +15,71 @@ from core.emojis import get_emoji
 
 # deepwiki help to get emoji
 class MusicControlButtons(View):  
-    def __init__(self, player: Player, timeout=180):  
+    def __init__(self, player: Player, ctx: commands.Context | Interaction, timeout=180):  
         super().__init__(timeout=timeout)  
         self.player = player  
-        self.translator = player.translator  
-        self.locale = player.locale  
+        self.locale = self.lang_code = self._get_lang_code() or player.locale
         self.bot = get_bot()  
+        self.ctx = ctx
           
         # 初始化按鈕  
-        self._setup_buttons()  
-      
-    def _get_emojis(self):  
-        """獲取所有需要的 emoji"""  
-        try:  
-            # 獲取 application emojis  
-            return {  
-                'previous': get_emoji('previous'),  
-                'pause': get_emoji('pause'),  
-                'next': get_emoji('next'),  
-                'stop': get_emoji('stop'),  
-                'loop': get_emoji('loop'),  
-                'list': get_emoji('list'),  
-                'refresh': get_emoji('refresh'),  
-                'volume': get_emoji('volume'),  
-            }  
-        except Exception as e:  
-            print(f"獲取 emoji 失敗: {e}")  
-            return {}  
-      
-    def _setup_buttons(self):  
-        """設置所有按鈕（使用 Unicode emoji 作為備選）"""  
-        # 定義按鈕配置  
-        button_configs = [  
-            ('previous', '⏮️', '上一首歌', self.previous_callback),  
-            ('pause', '⏸️', '暫停/繼續', self.pause_resume_callback),  
-            ('next', '⏭️', '下一首歌', self.next_callback),  
-            ('stop', '⏹️', '停止播放', self.stop_callback),  
-            ('loop', '🔁', '循環', self.loop_callback),  
-            ('list', '📋', '列表', self.queue_callback),  
-            ('refresh', '🔄', '刷新', self.refresh_callback),  
-            ('volume', '🔊', '音量調整', self.volume_callback),  
-        ]  
-          
-        # 創建按鈕（先使用 Unicode emoji，之後會異步更新）  
-        for name, unicode_emoji, label, callback in button_configs:  
-            button = Button(  
-                label=label,  
-                emoji=unicode_emoji,  
-            )  
-            button.callback = callback  
-            self.add_item(button)  
+        self._setup_btns()
 
-        self.update_emojis()
-      
-    def update_emojis(self):  
-        """更新按鈕的 emoji"""  
-        emojis = self._get_emojis()  
-          
-        # 更新每個按鈕的 emoji  
-        for i, (name, _, _, _) in enumerate([  
-            ('previous', '⏮️', '上一首歌', self.previous_callback),  
-            ('pause', '⏸️', '暫停/繼續', self.pause_resume_callback),  
-            ('next', '⏭️', '下一首歌', self.next_callback),  
-            ('stop', '⏹️', '停止播放', self.stop_callback),  
-            ('loop', '🔁', '循環', self.loop_callback),  
-            ('list', '📋', '列表', self.queue_callback),  
-            ('refresh', '🔄', '刷新', self.refresh_callback),  
-            ('volume', '🔊', '音量調整', self.volume_callback),  
-        ]):  
-            if i < len(self.children):  
-                button = self.children[i]  
-                if emojis.get(name):  
-                    button.emoji = emojis[name] # type: ignore
+    def _get_lang_code(self):
+        lang_code = None
+        if isinstance(self.ctx, commands.Context) and self.ctx.interaction:
+            lang_code = self.ctx.interaction.locale.value
+        elif isinstance(self.ctx, Interaction):
+            lang_code = self.ctx.locale.value
+        
+        # get guild locale
+        if lang_code is None and self.ctx.guild:
+            lang_code = self.ctx.guild.preferred_locale.value
+
+        return lang_code
+
+    def _setup_btns(self):
+        btn_configs = [ # default config
+            ('previous', '⏮️', 'button_previous', self.previous_callback),  
+            ('pause', '⏸️', 'button_pause', self.pause_resume_callback),  
+            ('next', '⏭️', 'button_next', self.next_callback),  
+            ('stop', '⏹️', 'button_stop', self.stop_callback),  
+            ('loop', '🔁', 'button_loop', self.loop_callback),  
+            ('list', '📋', 'button_list', self.queue_callback),  
+            ('refresh', '🔄', 'button_refresh', self.refresh_callback),  
+            ('volume', '🔊', 'button_volume', self.volume_callback),  
+        ]
+
+        for name, emoji, label_code, callback in btn_configs:
+            # get emoji
+            _emoji = get_emoji(name)
+            if _emoji:
+                emoji = _emoji
+
+            # get translation
+            _label = self.bot.tree.translator.get_translate_sync(label_code, self.lang_code) # type: ignore
+            if _label != label_code:
+                label = _label
+            else:
+                label = label_code
+
+            # create button
+            button = Button(
+                label=label,
+                emoji=emoji,
+            )
+            button.callback = callback
+            self.add_item(button)
+
       
     async def button_error(self, inter: Interaction, exception):  
+        traceback.print_exc()
         if isinstance(exception, errors.Forbidden):  
-            bot = get_bot()  
-            u = bot.get_user(inter.user.id) or await bot.fetch_user(inter.user.id)  
-            await u.send("I'm missing some permissions:((")  
-        traceback.print_exc()  
+            try:
+                bot = get_bot()  
+                u = bot.get_user(inter.user.id) or await bot.fetch_user(inter.user.id)  
+                await u.send("I'm missing some permissions:((")  
+            except: ...
       
     # 移除所有 @button 裝飾器，改為普通方法  
     async def previous_callback(self, interaction: Interaction):  
