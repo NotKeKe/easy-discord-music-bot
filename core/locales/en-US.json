@@ -15,7 +15,7 @@
         "leave": "leave",
         "volume": "volume",
         "play_custom_list": "play_custom_list",
-        "add_custom_list": "play_custom_list",
+        "add_custom_list": "add_custom_list",
         "delete_custom_list": "delete_custom_list",
         "show_custom_list": "show_custom_list"
     },

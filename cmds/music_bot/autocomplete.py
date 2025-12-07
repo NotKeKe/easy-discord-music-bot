@@ -1,8 +1,7 @@
 from discord import Interaction
 from discord.app_commands import Choice
 from typing import List
-from datetime import datetime
-from zoneinfo import ZoneInfo
+from datetime import datetime, timedelta, timezone
 
 from core.mongodb import MongoDB_DB
 from core import mongodb
@@ -26,7 +25,7 @@ async def custom_play_list_autocomplete(inter: Interaction, curr: str) -> List[C
         last_play_utc_str = meta["list_last_played_at"]
         if last_play_utc_str != '':
             last_play_utc = datetime.fromisoformat(last_play_utc_str) # utc 0
-            last_play_utc8 = last_play_utc.astimezone(ZoneInfo("Asia/Taipei")) # 轉為 utc+8
+            last_play_utc8 = last_play_utc.astimezone(timezone(timedelta(hours=8))) # 轉為 utc+8
             last_play = last_play_utc8.strftime('%Y/%m/%d %H:%M:%S %A')
         else:
             last_play = 'Unknown'

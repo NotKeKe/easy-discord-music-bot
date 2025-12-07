@@ -4,8 +4,21 @@ from typing import Optional, Any
 
 from .config import DB_PATH
 
-mongo_db_client = MontyClient()
-set_storage(str(DB_PATH), storage="sqlite")
+set_storage(
+    str(DB_PATH),
+    'sqlite',
+    # sqlite pragma
+    journal_mode="WAL",
+    # sqlite connection option
+    check_same_thread=False,
+)
+
+mongo_db_client = MontyClient(
+    str(DB_PATH),
+    synchronous=1, # 0 or 1 or 2, higher number means more safer, but lower performance(speed)
+    automatic_index=True,
+    busy_timeout=10000 # wait 10 seconds
+)
 
 class MongoDB_DB:
     music = mongo_db_client['music']
@@ -79,7 +92,7 @@ async def update_one(collection: MontyCollection, filter: dict, update: dict, up
         collection.update_one,
         filter=filter,
         update=update,
-        upsert=False,
+        upsert=upsert,
         **kwargs
     )
 

@@ -92,28 +92,17 @@ def video_id_to_url(video_id: str) -> str:
     return f'https://youtu.be/{video_id}'
 
 async def check_audio_url_alive(audio_url: str) -> bool:
-    parsed_url = urlparse(audio_url)
-    query_params = parse_qs(parsed_url.query)
-
-    # get expire timestamp
-    expire_list = query_params.get('expire')
-
-    if expire_list:
-        expire_timestamp = int(expire_list[0])
-        current_timestamp = int(time.time())
-        return current_timestamp < expire_timestamp - 60 # 60 秒緩衝
-    else: # 找不到 expire 就改用發送 head 請求確認
-        client: httpx.AsyncClient | None = None
-        try:
-            if not audio_url: return False
-            client = httpx.AsyncClient()
-            resp = await client.head(audio_url, timeout=5)
-            return resp.status_code == 200
-        except:
-            return False
-        finally:
-            if client:
-                await client.aclose()
+    client: httpx.AsyncClient | None = None
+    try:
+        if not audio_url: return False
+        client = httpx.AsyncClient()
+        resp = await client.head(audio_url, timeout=5)
+        return resp.status_code == 200
+    except:
+        return False
+    finally:
+        if client:
+            await client.aclose()
 
 def query_search(query: str) -> Optional[tuple]:
     '''return (title, video_url, length: str)'''

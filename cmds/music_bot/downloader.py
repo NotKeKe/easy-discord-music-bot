@@ -10,6 +10,7 @@ from . import utils
 from .utils import get_video_id, check_audio_url_alive, QUEUE
 
 from core.utils import redis_client, secondToReadable, math_round
+from core.mongodb import MongoDB_DB, update_one, find_one
 
 logger = logging.getLogger(__name__)
 
@@ -55,20 +56,29 @@ class RedisTemp:
 
         key = cls.redis_base_key + video_id
 
+        # find from redis first. Probably useless, idk why
         data = await redis_client.hgetall(key) # type: ignore
         if data:
             d = data.copy()
 
             audio_url = d['audio_url']
             # 確認 audio url 可用，不用特別刪除，因為後面在搜尋一次時，就會覆蓋掉原本的 key
-            if not (await check_audio_url_alive(audio_url)): return
-
-            return d | {'duration_int': int(d['duration_int'])}
+            if (await check_audio_url_alive(audio_url)):
+                logger.info(f"Song {video_url} found from redis.")
+                return d | {'duration_int': int(d['duration_int'])}
+            
+        # find from mongodb
+        doc = await find_one(MongoDB_DB.music['temp_urls'], {'video_id': video_id})
+        if doc and await check_audio_url_alive(doc.get('audio_url', '')):
+            logger.info(f"Song {video_url} found from MongoDB.")
+            return doc
 
     @classmethod
     async def upload(cls, title, video_url, audio_url, thumbnail_url, duration, duration_int):
         video_id = get_video_id(video_url)
         if not video_id: return
+
+        # upload to redis
         key = cls.redis_base_key + video_id
 
         data = {
@@ -82,6 +92,14 @@ class RedisTemp:
 
         await redis_client.hset(key, mapping=data) # type: ignore
         await redis_client.expire(key, 60*60) # 60 分鐘後過期
+
+        # upload to mongodb
+        await update_one(
+            MongoDB_DB.music['temp_urls'], 
+            {'video_id': video_id}, 
+            {"$set": data},
+            upsert=True
+        )
 
 class Downloader:
     '''User await Downloader(query).run()'''

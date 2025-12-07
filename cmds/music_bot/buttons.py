@@ -18,9 +18,9 @@ class MusicControlButtons(View):
     def __init__(self, player: Player, ctx: commands.Context | Interaction, timeout=180):  
         super().__init__(timeout=timeout)  
         self.player = player  
-        self.locale = self.lang_code = self._get_lang_code() or player.locale
         self.bot = get_bot()  
         self.ctx = ctx
+        self.locale = self.lang_code = self._get_lang_code() or player.locale
           
         # 初始化按鈕  
         self._setup_btns()

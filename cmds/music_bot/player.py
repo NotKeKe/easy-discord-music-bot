@@ -13,6 +13,7 @@ from .downloader import Downloader
 from core.utils import create_basic_embed, current_time, secondToReadable, math_round, redis_client
 from core.translator import load_translated, get_translate
 from core.emojis import get_emoji
+from core.mongodb import MongoDB_DB, find_one, update_one
 
 loop_option = ('None', 'single', 'list')
 loop_type = Literal['None', 'single', 'list']
@@ -106,11 +107,12 @@ class Player:
         first_result = await self.add(utils.video_id_to_url(video_ids[0]), self.ctx)
 
         # 創建一個 task，用於在背景新增其他歌曲
-        async def task():
-            for video_id in video_ids[1:]:
-                await self.add(utils.video_id_to_url(video_id), self.ctx, 2)
+        if len(video_ids) > 1:
+            async def task():
+                for video_id in video_ids[1:]:
+                    await self.add(utils.video_id_to_url(video_id), self.ctx, 2)
 
-        self.playlist_load_task = asyncio.create_task(task())
+            self.playlist_load_task = asyncio.create_task(task())
 
         return first_result
 
@@ -148,6 +150,15 @@ class Player:
         prefer_loop = await redis_client.get(f'{PREFER_LOOP_KEY}:{self.ctx.author.id}')
         if prefer_loop:
             self.loop(prefer_loop)
+        else: # find from mongodb
+            prefer_loop = await find_one(
+                MongoDB_DB.music['prefer_loop'],
+                {'user_id': self.ctx.author.id}
+            )
+            if prefer_loop:
+                self.loop(prefer_loop['loop'])
+                await redis_client.set(f'{PREFER_LOOP_KEY}:{self.ctx.author.id}', prefer_loop['loop'])
+
         
         if not self.list:
             if not self.downloading:
@@ -196,7 +207,17 @@ class Player:
         if self.loop_status not in loop_option: return 'Invalid loop type'
 
         key = f'{PREFER_LOOP_KEY}:{self.ctx.author.id}'
-        asyncio.create_task(redis_client.set(key, self.loop_status)) # type: ignore
+
+        async def change_prefer_loop(redis_key: str, value: str):
+            await redis_client.set(redis_key, value)
+            await update_one(
+                MongoDB_DB.music['prefer_loop'],
+                {'user_id': self.ctx.author.id},
+                {'$set': {'loop': value}},
+                upsert=True
+            )
+
+        asyncio.create_task(change_prefer_loop(key, self.loop_status)) # type: ignore
 
     def loop(self, loop_type: str):
         if loop_type not in loop_option: return 'Invalid loop type'
