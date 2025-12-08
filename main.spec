@@ -29,7 +29,7 @@ a = Analysis(
         ('cmds', 'cmds'), 
         ('assets', 'assets'), 
         ('core/locales', 'core/locales'),
-        ('.env.example', '.env.example'),
+        ('.env.example', '.'),
         ('.venv/Lib/site-packages/pytubefix/botGuard/vm/botGuard.js', 'pytubefix/botGuard/vm'),
         ('.venv/Lib/site-packages/nodejs_wheel/node.exe', 'nodejs_wheel') if os.name == 'nt' else ('.venv/Lib/site-packages/nodejs_wheel/bin', 'nodejs_wheel/bin'),
     ] + collect_data_files('fakeredis'),

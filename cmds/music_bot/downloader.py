@@ -5,6 +5,7 @@ import asyncio
 from concurrent.futures import ProcessPoolExecutor
 import logging
 import uuid
+import httpx
 
 from . import utils
 from .utils import get_video_id, check_audio_url_alive, QUEUE
@@ -25,12 +26,24 @@ def extract_info_yt_dlp(video_url: str):
         }
     
 async def extract_info_pytube(video_url: str):
+    video_id = get_video_id(video_url)
+    thumbnail_url = f'https://i.ytimg.com/vi/{video_id}/maxresdefault.jpg'
+
     yt = AsyncYouTube(video_url)
     streams = await yt.streams()
     best_audio = streams.filter(only_audio=True).order_by('abr').desc().first()
+
+    # get best thumbnail url
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.head(thumbnail_url)
+            response.raise_for_status()
+    except:
+        thumbnail_url = await yt.thumbnail_url()
+
     return {
         "audio_url": best_audio.url if best_audio is not None else '',
-        "thumbnail_url": await yt.thumbnail_url(),
+        "thumbnail_url": thumbnail_url,
         "title": await yt.title(),
         "duration": await yt.length(),
     }
