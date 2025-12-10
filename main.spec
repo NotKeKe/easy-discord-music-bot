@@ -27,7 +27,9 @@ a = Analysis(
     binaries=[],
     datas=[
         ('cmds', 'cmds'), 
-        ('assets', 'assets'), 
+        ('assets/emojis', 'assets/emojis'),
+        ('assets/ffmpeg', 'assets/ffmpeg'),
+        ('assets/opus', 'assets/opus'),
         ('core/locales', 'core/locales'),
         ('.env.example', '.'),
         ('.venv/Lib/site-packages/pytubefix/botGuard/vm/botGuard.js', 'pytubefix/botGuard/vm'),
@@ -62,4 +64,5 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
+    icon='assets/icon.ico',
 )
