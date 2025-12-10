@@ -127,7 +127,7 @@
         "send_play_not_in_guild": "You must be in a guild to play music.",
         "button_previous": "Previous",
         "button_pause": "Pause",
-        "button_resume": "Resume",
+        "button_next": "Next",
         "button_stop": "Stop",
         "button_loop": "Loop",
         "button_list": "Playlist",
